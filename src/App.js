@@ -1,25 +1,62 @@
-import logo from './logo.svg';
-import './App.css';
+import { useEffect, useLayoutEffect, useState } from "react";
+import { createAgendaFn } from "./lib";
 
-function App() {
+const App = () => {
+  const [output, setOutput] = useState([]);
+
+  function useWindowSize() {
+    const [size, setSize] = useState([0]);
+    useLayoutEffect(() => {
+      function updateSize() {
+        setSize(window.innerWidth);
+      }
+      window.addEventListener("resize", updateSize);
+      updateSize();
+      return () => window.removeEventListener("resize", updateSize);
+    }, []);
+    return size;
+  }
+
+  const windowSize = useWindowSize();
+
+  useEffect(() => {
+    const res = createAgendaFn();
+    console.log("Output", res);
+    console.log(windowSize);
+    setOutput(res);
+  }, [windowSize]);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
+    <div style={styles.main}>
+      {output.map((item) => (
+        <div
+          key={item.id}
+          style={{
+            border: "1px solid white",
+            backgroundColor: "goldenrod",
+            width: item.width,
+            height: item.height,
+            position: "absolute",
+            top: item.yOrigin,
+            left: item.xOrigin,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            marginBottom: ".3em",
+          }}
         >
-          Learn React
-        </a>
-      </header>
+          {item.id}
+        </div>
+      ))}
     </div>
   );
-}
+};
 
 export default App;
+
+const styles = {
+  main: {
+    width: "100%",
+    height: "100vh",
+  },
+};
