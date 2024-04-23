@@ -1,27 +1,15 @@
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useWindowWidth } from "./hooks/window-size";
+
 import { createAgendaFn } from "./lib";
 
 const App = () => {
   const [output, setOutput] = useState([]);
-
-  function useWindowSize() {
-    const [size, setSize] = useState([0]);
-    useLayoutEffect(() => {
-      function updateSize() {
-        setSize(window.innerWidth);
-      }
-      window.addEventListener("resize", updateSize);
-      updateSize();
-      return () => window.removeEventListener("resize", updateSize);
-    }, []);
-    return size;
-  }
-
-  const windowSize = useWindowSize();
+  const windowSize = useWindowWidth();
 
   useEffect(() => {
     const res = createAgendaFn();
-    console.log("Output", res);
+    // console.log("Output", res);
     console.log(windowSize);
     setOutput(res);
   }, [windowSize]);
