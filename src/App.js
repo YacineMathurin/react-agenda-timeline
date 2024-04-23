@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 import { useWindowWidth } from "./hooks/window-width";
 
-import { createAgendaFn } from "./lib";
+import { eventsTimelineFn } from "./lib";
 
 const App = () => {
   const [output, setOutput] = useState([]);
+  // windowSize is used to react to the resize of the window
   const windowSize = useWindowWidth();
 
   useEffect(() => {
-    const res = createAgendaFn();
+    const res = eventsTimelineFn();
     setOutput(res);
   }, [windowSize]);
 
