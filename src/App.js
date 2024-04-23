@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useWindowWidth } from "./hooks/window-size";
+import { useWindowWidth } from "./hooks/window-width";
 
 import { createAgendaFn } from "./lib";
 
@@ -9,8 +9,6 @@ const App = () => {
 
   useEffect(() => {
     const res = createAgendaFn();
-    // console.log("Output", res);
-    console.log(windowSize);
     setOutput(res);
   }, [windowSize]);
 

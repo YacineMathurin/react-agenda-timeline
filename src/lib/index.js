@@ -100,7 +100,7 @@ export function createAgendaFn(params) {
 
   // We need first exec to have isCollapsingWithLowestInterval to be true cause we by default start from left to right
   let lowestMeetingEndTime = Number.MAX_SAFE_INTEGER;
-  let longerMeetingEndTime = -1;
+  let greaterMeetingEndTime = -1;
   let collapsingWithSmallerIntervalCount = 0;
 
   const dateString = "01 Jan 2024";
@@ -130,12 +130,8 @@ export function createAgendaFn(params) {
     return input;
   }
 
-  function dateToMilliseconds(date) {
-    const startTime = Date.parse(`${dateString} ${date} GMT`);
-  }
-
   function getLongerMeetingEndTime(index) {
-    return Math.max(sortedMeetings[index]["end"], res[res.length - 1]["end"]);
+    return Math.max(sortedMeetings[index]["end"], greaterMeetingEndTime);
   }
 
   function getLowestMeetingEndTime(index) {
@@ -144,7 +140,7 @@ export function createAgendaFn(params) {
 
   function resetDefault() {
     lowestMeetingEndTime = Number.MAX_SAFE_INTEGER;
-    longerMeetingEndTime = -1;
+    greaterMeetingEndTime = -1;
   }
 
   function isTimeBetween(index) {
@@ -156,12 +152,10 @@ export function createAgendaFn(params) {
   }
 
   function isCollapsingWithLongerInterval(index) {
-    return sortedMeetings[index]["start"] <= longerMeetingEndTime;
+    return sortedMeetings[index]["start"] <= greaterMeetingEndTime;
   }
 
   function handleNotCollapsing(index) {
-    console.log("handleNotCollapsing");
-
     resetDefault();
     collapsingWithSmallerIntervalCount = 0;
 
@@ -178,11 +172,10 @@ export function createAgendaFn(params) {
 
   function handleCollapsingWithSmallerInterval(index) {
     collapsingWithSmallerIntervalCount += 1;
-    console.log("handleCollapsingWithSmallerInterval");
 
     lastElementCollapsed = true;
     lowestMeetingEndTime = getLowestMeetingEndTime(index);
-    longerMeetingEndTime = getLongerMeetingEndTime(index);
+    greaterMeetingEndTime = getLongerMeetingEndTime(index);
 
     res.push({
       id: sortedMeetings[index]["id"],
@@ -210,17 +203,17 @@ export function createAgendaFn(params) {
   }
 
   function handleCollapsingWithBiggerInterval(index) {
-    console.log("handleCollapsingWithBiggerInterval");
-
     lastElementCollapsed = true;
-    lowestMeetingEndTime = getLowestMeetingEndTime(index);
-    longerMeetingEndTime = getLongerMeetingEndTime(index);
+    greaterMeetingEndTime = getLongerMeetingEndTime(index);
 
     res.push({
       id: sortedMeetings[index]["id"],
       start: sortedMeetings[index]["start"],
       end: sortedMeetings[index]["end"],
-      xOrigin: 0,
+      xOrigin: getXOriginForCollapsingWithBiggerInterval(
+        index,
+        greaterMeetingEndTime
+      ),
       yOrigin: sortedMeetings[index]["yOrigin"],
       width:
         (fullwidth * collapsingWithSmallerIntervalCount) /
@@ -228,9 +221,27 @@ export function createAgendaFn(params) {
       height: sortedMeetings[index]["height"],
     });
     collapsingWithSmallerIntervalCount = 0;
+    // Reset to default
+    lowestMeetingEndTime = Number.MAX_SAFE_INTEGER;
   }
 
-  function checker(index) {
+  function getXOriginForCollapsingWithBiggerInterval(
+    index,
+    greaterMeetingEndTime
+  ) {
+    const longerMeetingEndTime = res.filter(
+      (item) => item.end == greaterMeetingEndTime
+    );
+    // If the longer meeting event is the first event of the timeline
+    if (longerMeetingEndTime[0]?.xOrigin === 0) {
+      // Upcoming event should align on the same xOrigin (i.e: 11 - 14 - 3)
+      return res[res.length - 1]["xOrigin"];
+    }
+    // Otherwise xOrigin
+    return 0;
+  }
+
+  function collapsingChecker(index) {
     if (isTimeBetween(index) && !isCollapsingWithLongerInterval(index)) {
       return "not_collapsing";
     }
@@ -245,7 +256,7 @@ export function createAgendaFn(params) {
   // Could useMemo fn of window width
   for (let index = 0; index < sortedMeetings.length; index++) {
     // For each it, check the 3 possibilities
-    switch (checker(index)) {
+    switch (collapsingChecker(index)) {
       case "not_collapsing":
         handleNotCollapsing(index);
         break;
@@ -254,7 +265,7 @@ export function createAgendaFn(params) {
         handleCollapsingWithBiggerInterval(index);
         break;
 
-      case "collapsing_with_smaller_interval":
+      default:
         handleCollapsingWithSmallerInterval(index);
         break;
     }
