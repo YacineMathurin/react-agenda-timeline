@@ -1,20 +1,31 @@
+import React from "react";
 import { useEffect, useState } from "react";
 import { useWindowWidth } from "./hooks/window-width";
 
 import { eventsTimelineFn } from "./lib";
 
+type OutputProps = {
+  id: number;
+  start: number;
+  end: number;
+  width: number;
+  height: number;
+  xOrigin: number;
+  yOrigin: number;
+}[];
+
 const App = () => {
-  const [output, setOutput] = useState([]);
-  // windowSize is used to react to the resize of the window
-  const windowSize = useWindowWidth();
+  const [output, setOutput] = useState<OutputProps>([]);
+  // windowWidth is used to react to the resize of the window
+  const windowWidth = useWindowWidth();
 
   useEffect(() => {
     const res = eventsTimelineFn();
     setOutput(res);
-  }, [windowSize]);
+  }, [windowWidth]);
 
   return (
-    <div style={styles.main}>
+    <main style={styles.main}>
       {output.map((item) => (
         <div
           key={item.id}
@@ -35,7 +46,7 @@ const App = () => {
           {item.id}
         </div>
       ))}
-    </div>
+    </main>
   );
 };
 
