@@ -1,7 +1,10 @@
 import { last, size } from "lodash";
+import { InputType, OutputType } from "./types";
 
 export function eventsTimelineFn() {
-  const input = [
+  
+
+  const input: InputType = [
     {
       id: 1,
       start: "17:00",
@@ -109,17 +112,17 @@ export function eventsTimelineFn() {
 
   const sortedMeetings = meetings.toSorted((a, b) => a.start - b.start);
   // First output is the first element of the sorted array of meetings
-  const output = sortedMeetings.splice(0, 1);
+  const output: OutputType = sortedMeetings.splice(0, 1);
 
-  function dateToMilliseconds(date) {
+  function dateToMilliseconds(date: string) {
     /* dateString will be used to parse the date string and convert them to milliseconds
      so we could use math operation on them
      */
     const dateString = "01 Jan 2024";
     return Date.parse(`${dateString} ${date} GMT`);
   }
-  function formatInput(input) {
-    input = input.map((el) => ({
+  function formatInput(input: InputType) {
+    let formatedInput = input.map((el) => ({
       id: el.id,
       start: dateToMilliseconds(el.start),
       end: dateToMilliseconds(el.start) + el.duration * 60 * 1000,
@@ -132,15 +135,15 @@ export function eventsTimelineFn() {
       width: fullWindowWidth,
       height: (el.duration * scaler) / 60,
     }));
-    return input;
+    return formatedInput;
   }
 
-  function getLongerMeetingEndTime(index) {
+  function getLongerMeetingEndTime(index: number) {
     return Math.max(sortedMeetings[index]["end"], longerMeetingEndTime);
   }
 
-  function getShorterMeetingEndTime(index) {
-    return Math.min(sortedMeetings[index]["end"], last(output).end);
+  function getShorterMeetingEndTime(index: number) {
+    return Math.min(sortedMeetings[index]["end"], last(output)?.end as number);
   }
 
   function resetDefault() {
@@ -149,32 +152,32 @@ export function eventsTimelineFn() {
     overlapWithSmallerIntervalCount = 0;
   }
 
-  function isTimeBetween(index) {
-    return sortedMeetings[index]["start"] > last(output).end;
+  function isTimeBetween(index: number) {
+    return sortedMeetings[index]["start"] > output[output.length - 1].end;
   }
 
-  function isAllOverlaping(index) {
+  function isAllOverlaping(index: number) {
     return sortedMeetings[index]["start"] <= shorterMeetingEndTime;
   }
 
-  function isOverlaping(index) {
+  function isOverlaping(index: number) {
     return sortedMeetings[index]["start"] <= longerMeetingEndTime;
   }
 
-  function getXOriginForOverlaping(longerMeetingEndTime) {
+  function getXOriginForOverlaping(longerMeetingEndTime: number) {
     const longerMeeting = output.filter(
       (item) => item.end === longerMeetingEndTime
     );
     // If the longer meeting event is the first event of the timeline
     if (longerMeeting[0]?.xOrigin === 0) {
       // Upcoming event should align on the same xOrigin (i.e: 11 - 14 - 3)
-      return last(output).xOrigin;
+      return last(output)?.xOrigin;
     }
     // Otherwise xOrigin
     return 0;
   }
 
-  function handleNotOverlaping(index) {
+  function handleNotOverlaping(index: number) {
     resetDefault();
     const { id, start, end, yOrigin, height } = sortedMeetings[index];
 
@@ -189,7 +192,7 @@ export function eventsTimelineFn() {
     };
   }
 
-  function handleAllOverlaping(index) {
+  function handleAllOverlaping(index: number) {
     overlapWithSmallerIntervalCount += 1;
     shorterMeetingEndTime = getShorterMeetingEndTime(index);
     longerMeetingEndTime = getLongerMeetingEndTime(index);
@@ -222,7 +225,7 @@ export function eventsTimelineFn() {
     }
   }
 
-  function handleOverlaping(index) {
+  function handleOverlaping(index: number) {
     longerMeetingEndTime = getLongerMeetingEndTime(index);
     // Reset to default behavior of displaying event from left to right
     shorterMeetingEndTime = Number.MAX_SAFE_INTEGER;
@@ -232,7 +235,7 @@ export function eventsTimelineFn() {
       id,
       start,
       end,
-      xOrigin: getXOriginForOverlaping(longerMeetingEndTime),
+      xOrigin: getXOriginForOverlaping(longerMeetingEndTime) ?? 0,
       yOrigin,
       // To use all the space availlable we should have the number of event that overlaped
       width:
@@ -244,7 +247,7 @@ export function eventsTimelineFn() {
     overlapWithSmallerIntervalCount = 0;
   }
 
-  function overlapChecker(index) {
+  function overlapChecker(index: number) {
     if (isTimeBetween(index) && !isOverlaping(index)) {
       return "not_overlap";
     }

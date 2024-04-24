@@ -4,7 +4,9 @@
       "lib": [
         "dom",
         "dom.iterable",
-        "esnext"
+        "esnext",
+        "ESNext.Array",
+        "ES2023.Array"
       ], // List of library files to be included in the compilation
       "allowJs": true, // Allow JavaScript files to be compiled
       "skipLibCheck": true, // Skip type checking of all declaration files
