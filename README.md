@@ -1,6 +1,6 @@
 # How it works
 
-![algo-illustration-dark](https://github.com/YacineMathurin/react-agenda-timeline/assets/28984024/aee3015a-d60c-4549-a8f7-285d4f2090fd)
+![algo-illustration-dark](https://github.com/YacineMathurin/react-agenda-timeline/assets/28984024/ef064910-a121-4ed5-a4e8-678a319b13b1)
 
 # Getting Started with Create React App
 
