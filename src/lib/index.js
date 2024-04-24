@@ -1,7 +1,7 @@
 import { last, size } from "lodash";
 
 export function eventsTimelineFn() {
-  let input = [
+  const input = [
     {
       id: 1,
       start: "17:00",
@@ -102,7 +102,11 @@ export function eventsTimelineFn() {
   // To use all the space availlable we should have the number of event that overlaped on a timeline
   let collapsingWithSmallerIntervalCount = 0;
 
-  const meetings = [...formatInput(input)];
+  const validatedInput = input.filter(
+    (item) => item.id && item.start && item.duration
+  );
+  const meetings = [...formatInput(validatedInput)];
+
   const sortedMeetings = meetings.toSorted((a, b) => a.start - b.start);
   // First output is the first element of the sorted array of meetings
   const output = sortedMeetings.splice(0, 1);
@@ -252,6 +256,7 @@ export function eventsTimelineFn() {
     return "collapsing_with_bigger_interval";
   }
 
+  // Main
   for (let index = 0; index < sortedMeetings.length; index++) {
     /* For each iteration, check the 3 possibilities
      * not_collapsing | collapsing_with_smaller_interval | collapsing_with_bigger_interval
