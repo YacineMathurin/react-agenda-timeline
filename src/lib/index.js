@@ -250,15 +250,15 @@ export function eventsTimelineFn() {
     }
 
     if (isAllOverlaping(index)) {
-      return "overlap_with_smaller_interval";
+      return "allOverlaping";
     }
 
-    return "overlap_with_longer_interval";
+    return "overlaping";
   }
 
   for (let index = 0; index < sortedMeetings.length; index++) {
     /* For each iteration, check the 3 possibilities
-     * not_overlap | overlap_with_smaller_interval | overlap_with_longer_interval
+     * not_overlap | allOverlaping | overlaping
      */
     switch (overlapChecker(index)) {
       // Using the whole window width
@@ -267,13 +267,13 @@ export function eventsTimelineFn() {
         break;
 
       // On the timeline, overlaping with shorter event
-      case "overlap_with_smaller_interval":
-        handleAllOverlaping(index);
+      case "overlaping":
+        handleOverlaping(index);
         break;
 
       // Overlapping with some of the event(s) but not all the event on the timeline
       default:
-        handleOverlaping(index);
+        handleAllOverlaping(index);
         break;
     }
   }
