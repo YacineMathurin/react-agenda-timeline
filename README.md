@@ -1,3 +1,7 @@
+# How it works
+
+![algo-illustration-dark](https://github.com/YacineMathurin/react-agenda-timeline/assets/28984024/63f395ca-5bd9-4ca0-b329-d3f1a0e7d831)
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
