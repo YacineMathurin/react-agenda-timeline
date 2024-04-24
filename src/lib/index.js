@@ -96,11 +96,11 @@ export function eventsTimelineFn() {
     (dateToMilliseconds("21:00") - dateToMilliseconds("9:00")) / (3600 * 1000);
   const scaler = containerHeight / timeWindow;
 
-  // We need first exec to have isCollapsingWithShorterInterval to be true cause we by default start from left to right
+  // We need first exec to have isAllOverlaping to be true cause we by default start from left to right
   let shorterMeetingEndTime = Number.MAX_SAFE_INTEGER;
-  let greaterMeetingEndTime = -1;
+  let longerMeetingEndTime = -1;
   // To use all the space availlable we should have the number of event that overlaped on a timeline
-  let collapsingWithSmallerIntervalCount = 0;
+  let overlapWithSmallerIntervalCount = 0;
 
   const validatedInput = input.filter(
     (item) => item.id && item.start && item.duration
@@ -136,7 +136,7 @@ export function eventsTimelineFn() {
   }
 
   function getLongerMeetingEndTime(index) {
-    return Math.max(sortedMeetings[index]["end"], greaterMeetingEndTime);
+    return Math.max(sortedMeetings[index]["end"], longerMeetingEndTime);
   }
 
   function getShorterMeetingEndTime(index) {
@@ -145,28 +145,28 @@ export function eventsTimelineFn() {
 
   function resetDefault() {
     shorterMeetingEndTime = Number.MAX_SAFE_INTEGER;
-    greaterMeetingEndTime = -1;
-    collapsingWithSmallerIntervalCount = 0;
+    longerMeetingEndTime = -1;
+    overlapWithSmallerIntervalCount = 0;
   }
 
   function isTimeBetween(index) {
     return sortedMeetings[index]["start"] > last(output).end;
   }
 
-  function isCollapsingWithShorterInterval(index) {
+  function isAllOverlaping(index) {
     return sortedMeetings[index]["start"] <= shorterMeetingEndTime;
   }
 
-  function isCollapsingWithLongerInterval(index) {
-    return sortedMeetings[index]["start"] <= greaterMeetingEndTime;
+  function isOverlaping(index) {
+    return sortedMeetings[index]["start"] <= longerMeetingEndTime;
   }
 
-  function getXOriginForCollapsingWithBiggerInterval(greaterMeetingEndTime) {
-    const longerMeetingEndTime = output.filter(
-      (item) => item.end === greaterMeetingEndTime
+  function getXOriginForOverlaping(longerMeetingEndTime) {
+    const longerMeeting = output.filter(
+      (item) => item.end === longerMeetingEndTime
     );
     // If the longer meeting event is the first event of the timeline
-    if (longerMeetingEndTime[0]?.xOrigin === 0) {
+    if (longerMeeting[0]?.xOrigin === 0) {
       // Upcoming event should align on the same xOrigin (i.e: 11 - 14 - 3)
       return last(output).xOrigin;
     }
@@ -174,7 +174,7 @@ export function eventsTimelineFn() {
     return 0;
   }
 
-  function handleNotCollapsing(index) {
+  function handleNotOverlaping(index) {
     resetDefault();
     const { id, start, end, yOrigin, height } = sortedMeetings[index];
 
@@ -189,10 +189,10 @@ export function eventsTimelineFn() {
     };
   }
 
-  function handleCollapsingWithSmallerInterval(index) {
-    collapsingWithSmallerIntervalCount += 1;
+  function handleAllOverlaping(index) {
+    overlapWithSmallerIntervalCount += 1;
     shorterMeetingEndTime = getShorterMeetingEndTime(index);
-    greaterMeetingEndTime = getLongerMeetingEndTime(index);
+    longerMeetingEndTime = getLongerMeetingEndTime(index);
     const { id, start, end, yOrigin, height } = sortedMeetings[index];
 
     output[size(output)] = {
@@ -210,20 +210,20 @@ export function eventsTimelineFn() {
     let countBack = 0;
     for (
       let idx = lastElementIndex;
-      idx >= lastElementIndex - collapsingWithSmallerIntervalCount;
+      idx >= lastElementIndex - overlapWithSmallerIntervalCount;
       idx--
     ) {
       output[idx]["width"] =
-        fullWindowWidth / (collapsingWithSmallerIntervalCount + 1);
+        fullWindowWidth / (overlapWithSmallerIntervalCount + 1);
       output[idx]["xOrigin"] =
-        ((collapsingWithSmallerIntervalCount - countBack) * fullWindowWidth) /
-        (collapsingWithSmallerIntervalCount + 1);
+        ((overlapWithSmallerIntervalCount - countBack) * fullWindowWidth) /
+        (overlapWithSmallerIntervalCount + 1);
       countBack += 1;
     }
   }
 
-  function handleCollapsingWithBiggerInterval(index) {
-    greaterMeetingEndTime = getLongerMeetingEndTime(index);
+  function handleOverlaping(index) {
+    longerMeetingEndTime = getLongerMeetingEndTime(index);
     // Reset to default behavior of displaying event from left to right
     shorterMeetingEndTime = Number.MAX_SAFE_INTEGER;
     const { id, start, end, yOrigin, height } = sortedMeetings[index];
@@ -232,49 +232,48 @@ export function eventsTimelineFn() {
       id,
       start,
       end,
-      xOrigin: getXOriginForCollapsingWithBiggerInterval(greaterMeetingEndTime),
+      xOrigin: getXOriginForOverlaping(longerMeetingEndTime),
       yOrigin,
       // To use all the space availlable we should have the number of event that overlaped
       width:
-        (fullWindowWidth * collapsingWithSmallerIntervalCount) /
-        (collapsingWithSmallerIntervalCount + 1),
+        (fullWindowWidth * overlapWithSmallerIntervalCount) /
+        (overlapWithSmallerIntervalCount + 1),
       height,
     };
     // Reset collapsingWithSmallerIntervalCount so to restart the count later
-    collapsingWithSmallerIntervalCount = 0;
+    overlapWithSmallerIntervalCount = 0;
   }
 
-  function collapsingChecker(index) {
-    if (isTimeBetween(index) && !isCollapsingWithLongerInterval(index)) {
-      return "not_collapsing";
+  function overlapChecker(index) {
+    if (isTimeBetween(index) && !isOverlaping(index)) {
+      return "not_overlap";
     }
 
-    if (isCollapsingWithShorterInterval(index)) {
-      return "collapsing_with_smaller_interval";
+    if (isAllOverlaping(index)) {
+      return "overlap_with_smaller_interval";
     }
 
-    return "collapsing_with_bigger_interval";
+    return "overlap_with_longer_interval";
   }
 
-  // Main
   for (let index = 0; index < sortedMeetings.length; index++) {
     /* For each iteration, check the 3 possibilities
-     * not_collapsing | collapsing_with_smaller_interval | collapsing_with_bigger_interval
+     * not_overlap | overlap_with_smaller_interval | overlap_with_longer_interval
      */
-    switch (collapsingChecker(index)) {
+    switch (overlapChecker(index)) {
       // Using the whole window width
-      case "not_collapsing":
-        handleNotCollapsing(index);
+      case "not_overlap":
+        handleNotOverlaping(index);
         break;
 
       // On the timeline, overlaping with shorter event
-      case "collapsing_with_smaller_interval":
-        handleCollapsingWithSmallerInterval(index);
+      case "overlap_with_smaller_interval":
+        handleAllOverlaping(index);
         break;
 
       // Overlapping with some of the event(s) but not all the event on the timeline
       default:
-        handleCollapsingWithBiggerInterval(index);
+        handleOverlaping(index);
         break;
     }
   }
