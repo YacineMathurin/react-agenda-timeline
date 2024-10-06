@@ -1,51 +1,42 @@
-import React from "react";
-import { useEffect, useState } from "react";
-import { useWindowWidth } from "./hooks/window-width";
+import React, { ReactNode } from "react";
+import Button from "./views/button";
+import { useDispatch, useSelector } from "react-redux";
+import { decrement, increment } from "./application/slices/counter-slice";
+import { RootState } from "./application/store";
+import Iframe from "./views/iframe";
+import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
+import MyDocument from "./views/my-document";
 
-import { eventsTimelineFn } from "./lib";
+const demos = {
+  soundcloud:
+    '<iframe width="100%" height="166" scrolling="yes" frameborder="no" allow="autoplay" src="http://localhost:3000/"></iframe>',
 
-type OutputProps = {
-  id: number;
-  start: number;
-  end: number;
-  width: number;
-  height: number;
-  xOrigin: number;
-  yOrigin: number;
-}[];
+  plotly:
+    '<iframe src="https://codesandbox.io/embed/q7jmjyplvq?fontsize=14" title="Plotly All Graph Types" allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media" style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;" sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>',
+};
 
 const App = () => {
-  const [output, setOutput] = useState<OutputProps>([]);
-  // windowWidth is used to react to the resize of the window
-  const windowWidth = useWindowWidth();
-
-  useEffect(() => {
-    const res = eventsTimelineFn();
-    setOutput(res);
-  }, [windowWidth]);
+  const count = useSelector((state: RootState) => state.counterReducer.value);
+  const dispatch = useDispatch();
 
   return (
     <main style={styles.main}>
-      {output.map((item) => (
-        <div
-          key={item.id}
-          style={{
-            border: "1px solid white",
-            backgroundColor: "goldenrod",
-            width: item.width,
-            height: item.height,
-            position: "absolute",
-            top: item.yOrigin,
-            left: item.xOrigin,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            marginBottom: ".3em",
-          }}
-        >
-          {item.id}
-        </div>
-      ))}
+      {/* <h1>Starting the count</h1>
+      <h2>{count}</h2>
+      <Button text="+1" onClick={() => dispatch(increment())} />
+      <Button text="-1" onClick={() => dispatch(decrement())} />
+      <Iframe iframe={demos["soundcloud"]} allow="autoplay" />, */}
+      <button>Retour</button>
+
+      <PDFViewer>
+        <MyDocument />
+      </PDFViewer>
+
+      {/* <PDFDownloadLink document={<MyDocument />} fileName="fee_acceptance.pdf">
+        {(data: { loading: boolean }): ReactNode => {
+          return data.loading ? "Loading document..." : "Download now!";
+        }}
+      </PDFDownloadLink> */}
     </main>
   );
 };
@@ -54,7 +45,10 @@ export default App;
 
 const styles = {
   main: {
-    width: "100%",
+    display: "flex",
+    flexDirection: "column" as "column",
     height: "100vh",
+    alignItems: "center",
+    justifyContent: "center",
   },
 };
