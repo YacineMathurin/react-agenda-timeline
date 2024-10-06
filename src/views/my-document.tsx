@@ -241,6 +241,28 @@ const MyDocument = () => (
         <View style={styles.dividerTotalBillSection}>
           <Text style={styles.dividerTotal} />
         </View>
+        {/*  */}
+        <View style={styles.page}>
+          <View style={styles.billContent}></View>
+          <View style={styles.billContent}>
+            <BillHeader>{""}</BillHeader>
+            <Total>Montant Payé</Total>
+            <BillHeader>{""}</BillHeader>
+            <BillHeader>{""}</BillHeader>
+            <BillHeader>48</BillHeader>
+          </View>
+        </View>
+        {/*  */}
+        <View style={styles.page}>
+          <View style={styles.billContent}></View>
+          <View style={styles.billContent}>
+            <BillHeader>{""}</BillHeader>
+            <Total>Reste à payé</Total>
+            <BillHeader>{""}</BillHeader>
+            <BillHeader>{""}</BillHeader>
+            <BillHeader>48</BillHeader>
+          </View>
+        </View>
       </Page>
     </Document>
   </>
